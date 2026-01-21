@@ -1,0 +1,43 @@
+name: Build Windows Installer (NSIS)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-windows-installer:
+    name: Build on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Copy standalone webassets into electron app
+        working-directory: ./wire-cube/electron-app
+        shell: powershell
+        run: |
+          $src = "${{ github.workspace }}\wire-cube\wireframe-cube-standalone"
+          if (-Not (Test-Path app)) { New-Item -ItemType Directory -Path app | Out-Null }
+          robocopy $src app /E /NFL /NDL /NJH /NJS || exit 0
+
+      - name: Install dependencies
+        working-directory: ./wire-cube/electron-app
+        run: npm ci
+
+      - name: Build installers (electron-builder)
+        working-directory: ./wire-cube/electron-app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist -- --win
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireframe-cube-windows-artifacts
+          path: ./wire-cube/electron-app/dist/**
+          retention-days: 7
