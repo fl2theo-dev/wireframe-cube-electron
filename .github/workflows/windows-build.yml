@@ -25,9 +25,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Retry: wait a few seconds for node to be ready
+      - name: Check Node availability
         run: |
-          for i in 1 2 3; do node -v && npm -v && break || (echo "node not ready, retrying..."; sleep 5); done
+          echo "Checking node and npm"
+          if command -v node >/dev/null 2>&1; then node -v; else echo "node not found"; fi
+          if command -v npm >/dev/null 2>&1; then npm -v; else echo "npm not found"; fi
 
       - name: Copy standalone webassets into electron app
         working-directory: ./wire-cube/electron-app
