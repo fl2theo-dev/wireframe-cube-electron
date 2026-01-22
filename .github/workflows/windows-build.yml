@@ -41,7 +41,13 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./wire-cube/electron-app
-        run: npm ci
+        shell: powershell
+        run: |
+          if (Test-Path package-lock.json) {
+            npm ci
+          } else {
+            npm install
+          }
 
       - name: Build installers (electron-builder)
         working-directory: ./wire-cube/electron-app
