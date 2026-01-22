@@ -13,11 +13,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Debug runner info
+        run: |
+          echo "Runner: $RUNNER_OS"
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "Workspace: $GITHUB_WORKSPACE"
+
+      - name: Setup Node.js (stable)
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'npm'
+
+      - name: Retry: wait a few seconds for node to be ready
+        run: |
+          for i in 1 2 3; do node -v && npm -v && break || (echo "node not ready, retrying..."; sleep 5); done
 
       - name: Copy standalone webassets into electron app
         working-directory: ./wire-cube/electron-app
